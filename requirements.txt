@@ -1,0 +1,58 @@
+# # ==============================
+# # Railway AI Assistant
+# # requirements.txt
+# # ==============================
+
+# # --- Dataset Generation ---
+# google-generativeai==0.7.2        # Gemini API
+# pandas==2.2.2                     # CSV handling
+# tqdm==4.66.4                      # Progress bars
+
+# # --- Model Fine-Tuning ---
+# torch==2.3.1                      # PyTorch
+# transformers==4.42.4              # HuggingFace T5
+# datasets==2.20.0                  # HuggingFace datasets
+# accelerate==0.31.0                # Training optimization
+# sentencepiece==0.2.0              # T5 tokenizer dependency
+# scikit-learn==1.5.0               # Train/val split
+
+# # --- FastAPI Server ---
+# fastapi==0.111.0                  # Web framework
+# uvicorn==0.30.1                   # ASGI server
+# jinja2==3.1.4                     # HTML templates
+# python-multipart==0.0.9           # Form data support
+# pydantic==2.7.4                   # Data validation
+
+# # --- Utilities ---
+# python-dotenv==1.0.1              # Load .env API keys
+
+
+
+# ==============================
+# Railway AI Assistant
+# requirements.txt (Final)
+# ==============================
+
+# --- Dataset Generation ---
+google-generativeai==0.7.2        # Gemini API
+pandas==2.2.2                     # CSV handling
+tqdm==4.66.4                      # Progress bars
+
+# --- Model Fine-Tuning ---
+torch==2.3.1                      # PyTorch
+transformers==4.42.4              # HuggingFace T5
+datasets==2.20.0                  # HuggingFace datasets
+accelerate==0.31.0                # Training optimization
+sentencepiece==0.2.0              # T5 tokenizer dependency
+scikit-learn==1.5.0               # Train/val split
+numpy>=1.24.0                     # Numerical operations
+
+# --- FastAPI Server ---
+fastapi==0.111.0                  # Web framework
+uvicorn==0.30.1                   # ASGI server
+jinja2==3.1.4                     # HTML templates
+python-multipart==0.0.9           # Form data support
+pydantic==2.7.4                   # Data validation
+
+# --- Utilities ---
+python-dotenv==1.0.1              # Load .env API keys

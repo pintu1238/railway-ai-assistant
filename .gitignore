@@ -1,3 +1,14 @@
+railway/
+venv/
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+model/
+checkpoints/
+
+railway_model/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

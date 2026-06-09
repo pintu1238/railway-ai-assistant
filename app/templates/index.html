@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Railway AI Assistant</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="logo">🚂</span>
+      <h1>Railway AI</h1>
+    </div>
+
+    <div class="journey-card" id="journeyCard">
+      <h3>Current Journey</h3>
+      <div class="journey-row" id="jDestination">
+        <span class="jlabel">Destination</span>
+        <span class="jvalue" id="jDest">—</span>
+      </div>
+      <div class="journey-row">
+        <span class="jlabel">Time</span>
+        <span class="jvalue" id="jTime">—</span>
+      </div>
+      <div class="journey-row">
+        <span class="jlabel">Priority</span>
+        <span class="jvalue" id="jPriority">—</span>
+      </div>
+      <div class="journey-row">
+        <span class="jlabel">Requirements</span>
+        <span class="jvalue" id="jConstraints">—</span>
+      </div>
+    </div>
+
+    <div class="quick-queries">
+      <h3>Quick Queries</h3>
+      <button class="quick-btn" onclick="sendQuick('Train to Manchester tomorrow morning')">🏙️ Manchester</button>
+      <button class="quick-btn" onclick="sendQuick('Cheapest train to Leeds tonight')">💰 Cheapest to Leeds</button>
+      <button class="quick-btn" onclick="sendQuick('I need to reach Heathrow urgently')">✈️ Heathrow Urgent</button>
+      <button class="quick-btn" onclick="sendQuick('Train to Edinburgh with bike space')">🚲 Edinburgh + Bike</button>
+      <button class="quick-btn" onclick="sendQuick('Overnight train to Glasgow')">🌙 Overnight Glasgow</button>
+      <button class="quick-btn" onclick="sendQuick('Wheelchair accessible train to Birmingham')">♿ Birmingham Access</button>
+    </div>
+
+    <button class="clear-btn" onclick="clearChat()">🗑️ New Conversation</button>
+  </aside>
+
+  <!-- MAIN CHAT -->
+  <main class="chat-area">
+    <header class="chat-header">
+      <div class="header-left">
+        <span class="status-dot"></span>
+        <span>Railway AI Assistant</span>
+      </div>
+      <div class="header-right">
+        <span class="model-badge">T5-small · Fine-tuned</span>
+      </div>
+    </header>
+
+    <div class="messages" id="messages">
+      <div class="message bot-message">
+        <div class="avatar">🚂</div>
+        <div class="bubble">
+          <p>Welcome! I'm your Railway AI Assistant. I can help you with:</p>
+          <ul>
+            <li>🗺️ Finding trains to any UK destination</li>
+            <li>💰 Cheapest and fastest route options</li>
+            <li>🚲 Bike, wheelchair, and pet-friendly services</li>
+            <li>⚡ Urgent and last-minute journeys</li>
+            <li>🌙 Overnight and sleeper trains</li>
+          </ul>
+          <p>Where would you like to travel today?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator" style="display:none;">
+      <div class="avatar">🚂</div>
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          id="userInput"
+          placeholder="Type your query... (e.g. 'Train to Manchester tomorrow with bike')"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // ── STATE ──
+  let conversationHistory = [];
+  let sessionId = null;           // server-side session ID for persistent memory
+
+  // ── SEND MESSAGE ──
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendMessage('user', message);
+    input.value = '';
+    autoResize(input);
+    showTyping(true);
+    setSendDisabled(true);
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          session_id: sessionId,   // send existing session (null on first message)
+          history: []              // server-side memory handles history
+        })
+      });
+
+      const data = await res.json();
+      showTyping(false);
+      setSendDisabled(false);
+
+      // Save session_id from first response — reuse for all subsequent messages
+      if (!sessionId && data.session_id) {
+        sessionId = data.session_id;
+      }
+
+      appendMessage('assistant', data.response);
+      updateJourneyCard(data.state);
+
+    } catch (err) {
+      showTyping(false);
+      setSendDisabled(false);
+      appendMessage('assistant', '⚠️ Connection error. Please check the server is running.');
+    }
+  }
+
+  // ── APPEND MESSAGE ──
+  function appendMessage(role, content) {
+    const messages = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+
+    const avatar = role === 'user'
+      ? `<div class="avatar user-avatar">👤</div>`
+      : `<div class="avatar">🚂</div>`;
+
+    const formattedContent = content
+      .replace(/•/g, '<br>•')
+      .replace(/\n/g, '<br>');
+
+    div.innerHTML = `${role === 'user' ? '' : avatar}
+      <div class="bubble">${formattedContent}</div>
+      ${role === 'user' ? avatar : ''}`;
+
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // ── UPDATE JOURNEY CARD ──
+  function updateJourneyCard(state) {
+    if (!state || Object.keys(state).length === 0) return;
+    document.getElementById('jDest').textContent     = state.destination || '—';
+    document.getElementById('jTime').textContent     = state.time        || '—';
+    document.getElementById('jPriority').textContent = state.priority    || '—';
+    const c = state.constraints;
+    document.getElementById('jConstraints').textContent =
+      (c && c.length > 0) ? c.join(', ') : '—';
+  }
+
+  // ── CLEAR CHAT ──
+  async function clearChat() {
+    // Delete server-side session memory
+    if (sessionId) {
+      try {
+        await fetch(`/session/${sessionId}`, { method: 'DELETE' });
+      } catch (_) {}
+    }
+
+    // Reset all local state
+    sessionId = null;
+    conversationHistory = [];
+
+    // Reset UI
+    const messages = document.getElementById('messages');
+    messages.innerHTML = `
+      <div class="message bot-message">
+        <div class="avatar">🚂</div>
+        <div class="bubble"><p>Conversation cleared. Where would you like to travel?</p></div>
+      </div>`;
+
+    // Reset journey card
+    document.getElementById('jDest').textContent        = '—';
+    document.getElementById('jTime').textContent        = '—';
+    document.getElementById('jPriority').textContent    = '—';
+    document.getElementById('jConstraints').textContent = '—';
+  }
+
+  // ── HELPERS ──
+  function showTyping(show) {
+    document.getElementById('typingIndicator').style.display = show ? 'flex' : 'none';
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+  }
+
+  function setSendDisabled(disabled) {
+    document.getElementById('sendBtn').disabled = disabled;
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function sendQuick(text) {
+    document.getElementById('userInput').value = text;
+    sendMessage();
+  }
+</script>
+
+</body>
+</html>
