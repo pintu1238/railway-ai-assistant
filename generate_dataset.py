@@ -1,17 +1,3 @@
-"""
-=====================================================
-Railway AI Assistant — Synthetic Dataset Generator
-=====================================================
-Uses Google Gemini API to generate 1000+ high-quality
-multi-turn railway conversations for fine-tuning T5.
-
-Usage:
-    python generate_dataset.py
-
-Output:
-    data/dataset.csv         → Full dataset
-    data/dataset_sample.csv  → First 50 rows (for review)
-"""
 
 import os
 import json
@@ -22,7 +8,7 @@ from tqdm import tqdm
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# ── Load API Key ────────────────────────────────────────────────────────────
+# ── Load API Key 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -35,7 +21,7 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash")
 
-# ── Railway Domain Knowledge ─────────────────────────────────────────────────
+# ── Railway Domain Knowledge 
 DESTINATIONS = [
     "Manchester", "Leeds", "Edinburgh", "Cardiff", "York",
     "Birmingham", "Bristol", "Liverpool", "Newcastle", "Sheffield",
@@ -82,7 +68,7 @@ FOLLOW_UP_TYPES = [
     "asking about accessibility"
 ]
 
-# ── Scenario Templates ───────────────────────────────────────────────────────
+# Scenario Templates 
 SCENARIO_TEMPLATES = [
     # Template 1: Simple booking with constraint added mid-flow
     {
@@ -135,7 +121,7 @@ SCENARIO_TEMPLATES = [
 ]
 
 
-# ── Prompt Builder ───────────────────────────────────────────────────────────
+# Prompt Builder
 def build_prompt(scenario: dict, destination: str, constraint: str,
                  time_ctx: str, priority: str, follow_up: str) -> str:
     """
@@ -192,7 +178,7 @@ Return ONLY a valid JSON object in this exact format (no extra text, no markdown
     return prompt
 
 
-# ── Single Example Generator ─────────────────────────────────────────────────
+# Single Example Generator 
 def generate_single_example(scenario: dict) -> dict | None:
     """
     Call Gemini API to generate one conversation example.
@@ -229,15 +215,15 @@ def generate_single_example(scenario: dict) -> dict | None:
         return parsed
 
     except json.JSONDecodeError as e:
-        print(f"\n⚠️  JSON parse error: {e} — skipping this example")
+        print(f"\n  JSON parse error: {e} — skipping this example")
         return None
     except Exception as e:
-        print(f"\n⚠️  API error: {e} — retrying after 5s")
+        print(f"\n  API error: {e} — retrying after 5s")
         time.sleep(5)
         return None
 
 
-# ── Rule-Based Fallback Generator ────────────────────────────────────────────
+#   Rule-Based Fallback Generator 
 def generate_rule_based_examples(count: int = 200) -> list[dict]:
     """
     Generate simple rule-based examples as fallback/padding.
@@ -328,7 +314,7 @@ def generate_rule_based_examples(count: int = 200) -> list[dict]:
     return examples
 
 
-# ── Flatten for CSV ──────────────────────────────────────────────────────────
+# ── Flatten for CSV 
 def flatten_example(example: dict) -> dict:
     """
     Convert a generated example into a flat CSV row.
@@ -352,7 +338,7 @@ def flatten_example(example: dict) -> dict:
     }
 
 
-# ── Main Generator ───────────────────────────────────────────────────────────
+# ── Main Generator
 def generate_dataset(target_count: int = 1000):
     """
     Main function: generates full dataset using Gemini API + rule-based fallback.
@@ -378,7 +364,7 @@ def generate_dataset(target_count: int = 1000):
     print(f"  Rule-based: {target_count - gemini_target} examples")
     print("=" * 60)
 
-    # ── Phase 1: Gemini API Examples ──────────────────────────────────────
+    # Phase 1: Gemini API Examples
     print("\n📡 Phase 1: Generating Gemini API examples...\n")
 
     with tqdm(total=gemini_target, desc="Generating", unit="example") as pbar:
@@ -403,18 +389,18 @@ def generate_dataset(target_count: int = 1000):
             else:
                 failed_count += 1
 
-    print(f"\n✅ Gemini generated: {len(all_examples)} examples")
+    print(f"\n Gemini generated: {len(all_examples)} examples")
 
-    # ── Phase 2: Rule-Based Padding ───────────────────────────────────────
+    # Phase 2: Rule-Based Padding 
     remaining = target_count - len(all_examples)
     if remaining > 0:
-        print(f"\n📋 Phase 2: Generating {remaining} rule-based examples...")
+        print(f"\n Phase 2: Generating {remaining} rule-based examples...")
         rule_examples = generate_rule_based_examples(remaining)
         all_examples.extend(rule_examples)
-        print(f"✅ Rule-based generated: {len(rule_examples)} examples")
+        print(f" Rule-based generated: {len(rule_examples)} examples")
 
-    # ── Save Final Dataset ────────────────────────────────────────────────
-    print(f"\n💾 Saving dataset...")
+    # ── Save Final Dataset 
+    print(f"\n Saving dataset...")
 
     df = pd.DataFrame(all_examples)
     df = df.sample(frac=1, random_state=42).reset_index(drop=True)  # Shuffle
@@ -427,9 +413,9 @@ def generate_dataset(target_count: int = 1000):
     sample_path = "data/dataset_sample.csv"
     df.head(50).to_csv(sample_path, index=False)
 
-    # ── Summary ───────────────────────────────────────────────────────────
+    # ── Summary
     print("\n" + "=" * 60)
-    print("  ✅ Dataset Generation Complete!")
+    print("   Dataset Generation Complete!")
     print("=" * 60)
     print(f"  Total rows     : {len(df)}")
     print(f"  Full dataset   : {full_path}")
@@ -449,12 +435,12 @@ def _save_checkpoint(examples: list, count: int):
     print(f"\n  💾 Checkpoint saved: {checkpoint_path}")
 
 
-# ── Entry Point ──────────────────────────────────────────────────────────────
+# Entry Point 
 if __name__ == "__main__":
     df = generate_dataset(target_count=1000)
 
     # Print 3 sample rows for visual confirmation
-    print("\n📋 Sample rows from dataset:\n")
+    print("\n Sample rows from dataset:\n")
     for i, row in df.head(3).iterrows():
         print(f"--- Row {i+1} ---")
         print(f"Scenario  : {row['scenario_type']}")

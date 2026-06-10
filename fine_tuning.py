@@ -1,9 +1,3 @@
-"""
-Railway AI Assistant — Fine-Tuning Script (Local GPU)
-Model: T5-small | Dataset: data/dataset.csv
-Run: python fine_tuning.py
-"""
-
 import os
 import json
 import pandas as pd
@@ -18,9 +12,7 @@ from transformers import (
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-# ─────────────────────────────────────────────
 # CONFIG
-# ─────────────────────────────────────────────
 CONFIG = {
     "model_name": "t5-small",
     "dataset_path": "data/dataset.csv",
@@ -37,14 +29,12 @@ CONFIG = {
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"\n🖥️  Device: {device}")
+print(f"\n  Device: {device}")
 if torch.cuda.is_available():
     print(f"   GPU: {torch.cuda.get_device_name(0)}")
     print(f"   VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 
-# ─────────────────────────────────────────────
-# DATASET
-# ─────────────────────────────────────────────
+# dataset
 class RailwayDataset(Dataset):
     def __init__(self, data, tokenizer, max_input_len, max_target_len):
         self.data = data.reset_index(drop=True)
@@ -92,9 +82,8 @@ class RailwayDataset(Dataset):
         }
 
 
-# ─────────────────────────────────────────────
+
 # TRAINING LOOP
-# ─────────────────────────────────────────────
 def train_epoch(model, loader, optimizer, scheduler, scaler, accumulation_steps):
     model.train()
     total_loss = 0
@@ -145,12 +134,11 @@ def eval_epoch(model, loader):
     return total_loss / len(loader)
 
 
-# ─────────────────────────────────────────────
+
 # INFERENCE TEST
-# ─────────────────────────────────────────────
 def test_inference(model, tokenizer, queries):
     model.eval()
-    print("\n🧪 Inference Test:")
+    print("\n Inference Test:")
     print("─" * 60)
     for query in queries:
         input_text = f"railway query: {query}"
@@ -173,18 +161,16 @@ def test_inference(model, tokenizer, queries):
         print()
 
 
-# ─────────────────────────────────────────────
 # MAIN
-# ─────────────────────────────────────────────
 def main():
     torch.manual_seed(CONFIG["seed"])
 
     print("\n" + "=" * 60)
-    print("  🚂 Railway AI — Fine-Tuning (T5-small)")
+    print(" Railway AI — Fine-Tuning (T5-small)")
     print("=" * 60)
 
     # Load dataset
-    print("\n📂 Loading dataset...")
+    print("\n Loading dataset...")
     df = pd.read_csv(CONFIG["dataset_path"])
     print(f"   Total rows: {len(df)}")
 
@@ -199,7 +185,7 @@ def main():
     print(f"   Train: {len(train_df)} | Val: {len(val_df)}")
 
     # Load tokenizer and model
-    print(f"\n🤖 Loading {CONFIG['model_name']}...")
+    print(f"\n Loading {CONFIG['model_name']}...")
     tokenizer = T5Tokenizer.from_pretrained(CONFIG["model_name"])
     model = T5ForConditionalGeneration.from_pretrained(CONFIG["model_name"])
     model = model.to(device)
@@ -235,7 +221,7 @@ def main():
     scaler = torch.cuda.amp.GradScaler(enabled=(device.type == "cuda"))
 
     # Training
-    print(f"\n🏋️  Training for {CONFIG['epochs']} epochs...")
+    print(f"\n  Training for {CONFIG['epochs']} epochs...")
     print("─" * 60)
 
     best_val_loss = float("inf")
@@ -274,7 +260,7 @@ def main():
     test_inference(model, tokenizer, test_queries)
 
     print("=" * 60)
-    print(f"  ✅ Training complete!")
+    print(f"   Training complete!")
     print(f"  Best val loss : {best_val_loss:.4f}")
     print(f"  Model saved   : ./{CONFIG['output_dir']}/")
     print("=" * 60)
