@@ -531,7 +531,7 @@ def smart_response(message: str, history: list) -> str:
             "booking status, seat details, and coach information for you."
         )
 
-    # ── Seat / berth availability
+    # ── Seat  berth availability
     if any(w in msg for w in ["seat", "berth", "available", "availability", "coach", "quota"]):
         return (
             f"Current seat availability for trains to {dest}" + (f" {time}" if time else "") + ":\n\n"
