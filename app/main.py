@@ -32,9 +32,9 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 sessions: dict = {}  # session_id -> list of {role, content}
 
 
-# ─────────────────────────────────────────────
+
 # SCHEMAS
-# ─────────────────────────────────────────────
+
 class Message(BaseModel):
     role: str       # "user" or "assistant"
     content: str
@@ -51,9 +51,7 @@ class ChatResponse(BaseModel):
     session_id: str
 
 
-# ─────────────────────────────────────────────
-# ROUTES
-# ─────────────────────────────────────────────
+# routes
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
