@@ -15,9 +15,9 @@ _tokenizer = None
 _device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-# ─────────────────────────────────────────────
+
 # MODEL LOADER
-# ─────────────────────────────────────────────
+
 def load_model():
     global _model, _tokenizer
     if _model is None:
@@ -30,9 +30,9 @@ def load_model():
     return _model, _tokenizer
 
 
-# ─────────────────────────────────────────────
+
 # CONVERSATION FORMATTER
-# ─────────────────────────────────────────────
+
 def format_conversation(history: list, new_message: str) -> str:
     lines = []
     for turn in history:
@@ -44,9 +44,9 @@ def format_conversation(history: list, new_message: str) -> str:
     return "\n".join(lines)
 
 
-# ─────────────────────────────────────────────
+
 # STATE EXTRACTOR
-# ─────────────────────────────────────────────
+
 def extract_state(history: list, new_message: str) -> dict:
     full_text = " ".join(
         [t.get("content", "") for t in history] + [new_message]
@@ -140,9 +140,9 @@ def extract_state(history: list, new_message: str) -> dict:
     return {k: v for k, v in state.items() if v is not None and v != []}
 
 
-# ─────────────────────────────────────────────
+
 # FOLLOW-UP QUESTION BANK
-# ─────────────────────────────────────────────
+
 TICKET_FOLLOWUPS = [
     "Would you like a single or return ticket?",
     "Are you looking for a specific class — Sleeper, 3A, 2A, or First Class?",
@@ -172,10 +172,9 @@ def _pick_followup(category: str) -> str:
     return ""
 
 
-# ─────────────────────────────────────────────
+
 # SMALL TALK HANDLER
-# Returns a response string or None if not small talk
-# ─────────────────────────────────────────────
+
 def _handle_small_talk(msg: str, history: list, state: dict) -> str | None:
     dest = state.get("destination")
     time = state.get("time")
