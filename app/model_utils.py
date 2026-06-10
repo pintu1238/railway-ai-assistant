@@ -516,7 +516,7 @@ def smart_response(message: str, history: list) -> str:
             "Recommend reaching the station a few minutes early. " + _pick_followup("journey")
         )
 
-    # ── Platform
+    # Platform
     if "platform" in msg:
         return (
             f"The next service to {dest} is currently assigned to Platform 3. "
