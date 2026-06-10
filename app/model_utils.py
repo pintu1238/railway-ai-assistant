@@ -506,7 +506,7 @@ def smart_response(message: str, history: list) -> str:
             "I recommend the 13:45 for a confirmed booking. " + _pick_followup("booking")
         )
 
-    #Disruption / delay
+    #Disruption delay
     if any(w in msg for w in ["delay", "disruption", "cancel", "late",
                                "problem", "issue", "running on time", "rescheduled"]):
         return (
