@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt awscli
 
 RUN aws s3 cp s3://railway-model-pintu/railway_model/ /app/railway_model/ --recursive
 
